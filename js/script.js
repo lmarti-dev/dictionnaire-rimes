@@ -7,6 +7,13 @@ const cr = `[${CONSONNES}]`
 const vr = `[${VOYELLES}]`
 const only_vowels = new RegExp(`^${vr}+$`)
 
+//  TODO: régler les problèmes d'association de deux voyelles (ie pas re rime si ie)
+//  TODO: laisser les users utiliser des tirets pour marquer la diff 
+// et si c'est le cas enlever le matching -? du regex
+const assoc = "eau|ai|ei|in|ein|ain|on|un|oi|ou)"
+
+var max_mots = 100;
+var rimes;
 
 var liste;
 
@@ -102,9 +109,7 @@ function rime_avec(end_regex, liste_mots) {
   return liste_mots.filter(item => ends_match(end_regex, item[1]));
 }
 
-function find_rimes(pron) {
-  let end_regex = get_end_regex(pron)
-
+function find_rimes(pron, end_regex) {
   console.log(`${pron}: ${end_regex}`)
   return rime_avec(end_regex, liste)
 }
@@ -112,7 +117,10 @@ function find_rimes(pron) {
 
 function process_search_value(v) {
 
-  // consonnes répétées rr -> r
+
+
+  v = v.replaceAll(/ +/g, "", v)
+  // lettres répétées rr -> r
   v = v.replace(/(\w)\1{1,}/, "$1", v)
 
   // remplacer le e caduc par '
@@ -124,38 +132,53 @@ function process_search_value(v) {
   // remplacer er par é
   v = v.replace(/er$/, "é", v)
 
+  // oeu -> eu
+  v = v.replaceAll(/œu/g, "eu", v)
+
+  //  trépas, pas, 
+  v = v.replace(/as$/, "a", v)
+
+
+
   // replacer bateaux -> bato
-  v = v.replace(/([ea]+)ux/, "$1u", v)
+  v = v.replace(/([ea]+)ux$/, "$1u", v)
 
   // remplacer dément par déman
   v = v.replace(/m[ae]n[tdx]$/, "man", v)
 
   // remplacer chienne par chièn
-  v = v.replace(/ienn/, "ièn", v)
+  v = v.replaceAll(/ienn/g, "ièn", v)
 
   // remplacer ancien par aciin
-  v = v.replace(/ien/, "iin", v)
+  v = v.replaceAll(/ien/g, "iin", v)
 
   // combinaisons
-  v = v.replace(/qu/, "k", v)
-  v = v.replace(/ai/, "è", v)
-  v = v.replace(/au/, "o", v)
+  v = v.replaceAll(/qu/g, "k", v)
+  v = v.replaceAll(/ai/g, "è", v)
+  v = v.replaceAll(/au/g, "o", v)
 
   // c dur
-  v = v.replace(/c([aou])/, "k$1", v)
+  v = v.replaceAll(/c([aou])/g, "k$1", v)
 
   // c mou
-  v = v.replace(/c([iey'])/, "s$1", v)
+  v = v.replaceAll(/c([iey'])/g, "s$1", v)
 
   // g mou
-  v = v.replace(/g(['iey])/, "j$1", v)
+  v = v.replaceAll(/g(['iey])/g, "j$1", v)
 
   // misc
-  v = v.replace(/ç/, "s", v)
-  v = v.replace(/x/, "ks", v)
+  v = v.replaceAll(/ç/g, "s", v)
+  v = v.replaceAll(/x/g, "ks", v)
   return v
 
 
+}
+
+
+function add_rimes_to_content() {
+  for (i = 0; i < Math.min(rimes.length, max_mots); i++) {
+    results.appendChild(create_item_div_inner(rimes[i]))
+  }
 }
 
 function setup_search() {
@@ -178,15 +201,20 @@ function setup_search() {
     results.innerHTML = ""
 
     let pron = process_search_value(search.value)
-    mots = find_rimes(pron)
     pron_box = document.getElementById("pron")
-    pron_box.setAttribute("class", "small px-2 text-secondary")
-    pron_box.innerHTML = pron
 
-    document.title = `Rimes - ${search.value}`
-    for (i = 0; i < Math.min(mots.length, 100); i++) {
-      results.appendChild(create_item_div_inner(mots[i]))
+    if (pron != "") {
+      let end_regex = get_end_regex(pron)
+      rimes = find_rimes(pron, end_regex)
+      pron_box.setAttribute("class", "small px-2 text-secondary")
+      pron_box.innerHTML = `<span class'font-italic'>${pron}</span> ― <code>${end_regex}</code>`
+
+      document.title = `Rimes - ${search.value}`
+    } else {
+      pron_box.innerHTML = ""
     }
+    add_rimes_to_content()
+
   }
 
 }
