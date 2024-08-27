@@ -1,20 +1,26 @@
-const CONSONNES = "qwrtzpsdfghjklxcvbnmç"
+const CONSONNES_LETTRES = "qwrtzpsdfghjklxcvbnmç"
+const CONSONNES_ASSOC = "ch"
+const CONSONNES = CONSONNES_ASSOC + [...CONSONNES_LETTRES].map((e) => `|${e}`).join("")
+const CR = `(?:${CONSONNES})`
 
 // guess what \W contains? 
+
+// ou-i ne marche pas
+// enlever les consonnes avant la fin
+// et ajouter une lettre avant avec ?
+
 const VOYELLES_LETTRES = "aeyoui" + "àèìòù" + "áéíóúý" + "âêîôû" + "äëïöüÿ"
-
-const CR = `[${CONSONNES}]`
-
 const VOYELLES_ASSOC = "an|eu|in|on|un|oi|ou|oû"
-
-
 const VOYELLES = VOYELLES_ASSOC + [...VOYELLES_LETTRES].map((e) => `|${e}`).join("")
-
 const VR = `(?:${VOYELLES})`
+
+
 const ONLYVOYELLES = new RegExp(`^${VR}+$`)
 const ONLYCONSONNES = new RegExp(`^${CR}+'?$`)
 
-var max_mots = 100;
+const DEFAULT_MAX_RIMES = 100
+const MORE_RIMES = 100
+var current_rimes = 0
 var rimes;
 
 var liste;
@@ -48,7 +54,7 @@ function create_result_list_item(tup) {
 
 
 function is_consonne(char) {
-  return CONSONNES.indexOf(c) > -1
+  return CONSONNES_LETTRES.indexOf(c) > -1
 }
 
 async function main() {
@@ -68,6 +74,12 @@ async function main() {
 }
 
 
+function include_close_sounds(pat) {
+  pat = pat.replaceAll(/[êè]/g, "(ê|è)")
+  pat = pat.replaceAll(/[oô]/g, "(o|ô)")
+  pat = pat.replaceAll(/[aâ]/g, "(a|â)")
+  return pat
+}
 
 function to_pattern(pron) {
   let pat = pron.replaceAll(new RegExp(CR, "g"), "c")
@@ -84,13 +96,17 @@ function get_end_regex(pron) {
   }
 
   m = pron.match(new RegExp(`(${CR}+${VR}$)|(${VR}${CR}+'?$)`))
-  console.log(m)
   if (m == null) { return /$/ }
   pron_end = m[0]
-  pron_end_dashed = pron_end.replaceAll(new RegExp(`(${VR})(${CR})`, "g"), "$1\-?$2")
-  pron_end_dashed = pron_end_dashed.replaceAll(new RegExp(`(${CR})(${VR})`, "g"), "$1\-?$2")
-  pron_end_dashed = pron_end_dashed.replace(/'$/, "'?")
-  let end_regex = new RegExp(`[${CONSONNES}-]${pron_end_dashed}$`)
+  penultieme_syllabe = pron.slice(0, m.index).match(new RegExp(`(${CR}|${VR})$`))
+  pron_end_dashed = pron_end.replaceAll(new RegExp(`(${VR}|${CR})(?!$)`, "g"), "$1\-?")
+
+  // ugly but the only way to get ch to have precedence over c
+  pron_end_dashed = pron_end_dashed.replaceAll(/-[?]'$/g, "'")
+  let end_regex;
+  if (penultieme_syllabe != null) { end_regex = `(${penultieme_syllabe[0]}|-)?${pron_end_dashed}$` }
+  else { end_regex = `${pron_end_dashed}$` }
+  end_regex = new RegExp(include_close_sounds(end_regex))
   return end_regex
 }
 
@@ -161,6 +177,9 @@ function process_search_value(v) {
   // c dur
   v = v.replaceAll(/c(?!h)/g, "k", v)
 
+  // ch dur
+  v = v.replaceAll(/chr/g, "kr", v)
+
 
   // misc
   v = v.replaceAll(/ç/g, "s", v)
@@ -176,11 +195,27 @@ function process_search_value(v) {
 }
 
 
-function add_rimes_to_content(shuffle = true) {
-  // TODO: add shuffle
-  for (i = 0; i < Math.min(rimes.length, max_mots); i++) {
+function append_rimes_to_content() {
+  results = document.getElementById("results")
+  for (i = current_rimes; i < Math.min(rimes.length, current_rimes + DEFAULT_MAX_RIMES); i++) {
     results.appendChild(create_result_list_item(rimes[i]))
   }
+}
+function manage_more_rimes() {
+  // TODO: add ranking by most common or alphabetical
+  // do most common by counting each in the xml littre
+  let add_more = document.getElementById("more-results")
+  if (rimes.length > current_rimes + DEFAULT_MAX_RIMES) {
+    add_more.removeAttribute("style")
+    add_more.addEventListener("click", () => {
+      current_rimes += MORE_RIMES
+      append_rimes_to_content()
+      if (rimes.length <= current_rimes + DEFAULT_MAX_RIMES) {
+        add_more.setAttribute("style", "display:none;")
+      }
+    })
+  }
+
 }
 
 function setup_search() {
@@ -200,8 +235,12 @@ function setup_search() {
   });
 
   function doneTyping() {
+    current_rimes = 0
+
 
     if (search.value != current_search_value) {
+      let add_more = document.getElementById("more-results")
+      add_more.setAttribute("style", "display:none;")
       results.innerHTML = ""
       current_search_value = search.value;
 
@@ -218,7 +257,8 @@ function setup_search() {
       } else {
         pron_box.innerHTML = ""
       }
-      add_rimes_to_content()
+      append_rimes_to_content()
+      manage_more_rimes()
 
     }
   }
