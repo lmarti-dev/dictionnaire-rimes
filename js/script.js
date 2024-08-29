@@ -3,12 +3,10 @@ const CONSONNES_ASSOC = "ch"
 const CONSONNES = CONSONNES_ASSOC + [...CONSONNES_LETTRES].map((e) => `|${e}`).join("")
 const CR = `(?:${CONSONNES})`
 
-// guess what \W contains? 
-
 // ou-i ne marche pas
-// enlever les consonnes avant la fin
-// et ajouter une lettre avant avec ?
 
+
+// guess what \W contains? 
 const VOYELLES_LETTRES = "aeyoui" + "àèìòù" + "áéíóúý" + "âêîôû" + "äëïöüÿ"
 const VOYELLES_ASSOC = "an|eu|in|on|un|oi|ou|oû"
 const VOYELLES = VOYELLES_ASSOC + [...VOYELLES_LETTRES].map((e) => `|${e}`).join("")
@@ -76,8 +74,8 @@ async function main() {
 
 function include_close_sounds(pat) {
   pat = pat.replaceAll(/[êè]/g, "(ê|è)")
-  pat = pat.replaceAll(/[oô]/g, "(o|ô)")
-  pat = pat.replaceAll(/[aâ]/g, "(a|â)")
+  pat = pat.replaceAll(/[oô](?![uinû])/g, "(o|ô)")
+  pat = pat.replaceAll(/[aâ](?![in])/g, "(a|â)")
   return pat
 }
 
@@ -95,7 +93,7 @@ function get_end_regex(pron) {
     return new RegExp(`${pron_regex}$`)
   }
 
-  m = pron.match(new RegExp(`(${CR}+${VR}$)|(${VR}${CR}+'?$)`))
+  m = pron.match(new RegExp(`(${CR}+${VR}+$)|(${VR}${CR}+'?$)`))
   if (m == null) { return /$/ }
   pron_end = m[0]
   penultieme_syllabe = pron.slice(0, m.index).match(new RegExp(`(${CR}|${VR})$`))
