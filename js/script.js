@@ -66,6 +66,7 @@ async function main() {
     zip.loadAsync(response).then(function (zip) {
       zip.file("littre_blurb.json").async("text").then(jobj => {
         liste = JSON.parse(jobj)
+        setup_search()
       })
     })
   })
@@ -93,7 +94,7 @@ function get_end_regex(pron) {
     return new RegExp(`${pron_regex}$`)
   }
 
-  m = pron.match(new RegExp(`(${CR}+${VR}+$)|(${VR}${CR}+'?$)`))
+  m = pron.match(new RegExp(`(${CR}+${VR}+$)|(${VR}+${CR}+'?$)`))
   if (m == null) { return /$/ }
   pron_end = m[0]
   penultieme_syllabe = pron.slice(0, m.index).match(new RegExp(`(${CR}|${VR})$`))
@@ -123,6 +124,8 @@ function find_rimes(pron, end_regex) {
 
 
 function process_search_value(v) {
+
+  // remove spaces in word
   v = v.replaceAll(/ +/g, "", v)
 
   // remplacer le e caduc par '
@@ -131,6 +134,9 @@ function process_search_value(v) {
   v = v.replace(new RegExp(`(${CR})[dtxg]$`), "$1", v)
   v = v.replace(new RegExp(`(${VR})s{1}'$`), "$1z'", v)
 
+  // ll mouillées
+  v = v.replaceAll(new RegExp(`(${VR})ill`, "g"), "$1£", v)
+  v = v.replaceAll(new RegExp(`(?!i)ll`, "g"), "l", v)
 
 
   // remplacer er par é
@@ -187,6 +193,9 @@ function process_search_value(v) {
   // lettres répétées rr -> r
   v = v.replace(/(\w)\1{1,}/, "$1", v)
 
+  // but back the ll in
+  v = v.replaceAll(/£/g, "ll", v)
+
   return v
 
 
@@ -221,6 +230,8 @@ function setup_search() {
   var doneTypingInterval = 300;
 
   search = document.getElementById("search-form")
+  search.removeAttribute("disabled")
+  search.setAttribute("placeholder", "Chercher  ...")
   results = document.getElementById("results")
 
   search.addEventListener('keyup', function () {
@@ -264,7 +275,7 @@ function setup_search() {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-  setup_search()
+
   main()
 
 });
