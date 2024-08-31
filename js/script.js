@@ -3,9 +3,6 @@ const CONSONNES_ASSOC = "ch"
 const CONSONNES = CONSONNES_ASSOC + [...CONSONNES_LETTRES].map((e) => `|${e}`).join("")
 const CR = `(?:${CONSONNES})`
 
-// ou-i ne marche pas
-
-
 // guess what \W contains? 
 const VOYELLES_LETTRES = "aeyoui" + "àèìòù" + "áéíóúý" + "âêîôû" + "äëïöüÿ"
 const VOYELLES_ASSOC = "an|eu|in|on|un|oi|ou|oû"
@@ -15,6 +12,9 @@ const VR = `(?:${VOYELLES})`
 
 const ONLYVOYELLES = new RegExp(`^${VR}+$`)
 const ONLYCONSONNES = new RegExp(`^${CR}+'?$`)
+
+
+const FILE_TO_LOAD = "littre_blurb_sorted"
 
 const DEFAULT_MAX_RIMES = 100
 const MORE_RIMES = 100
@@ -32,7 +32,7 @@ async function load_littre_zip(callback) {
       callback(data)
     }
   };
-  xhttp.open("GET", "./files/littre_blurb.zip", true);
+  xhttp.open("GET", `./files/${FILE_TO_LOAD}.zip`, true);
   xhttp.responseType = "arraybuffer";
   xhttp.overrideMimeType("text/plain; charset=x-user-defined");
   xhttp.send();
@@ -64,7 +64,7 @@ async function main() {
       type: 'application/zip'
     });
     zip.loadAsync(response).then(function (zip) {
-      zip.file("littre_blurb.json").async("text").then(jobj => {
+      zip.file(`${FILE_TO_LOAD}.json`).async("text").then(jobj => {
         liste = JSON.parse(jobj)
         setup_search()
       })
