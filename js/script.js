@@ -247,7 +247,7 @@ function setup_search() {
 
   search = document.getElementById("search-form")
   search.removeAttribute("disabled")
-  search.setAttribute("placeholder", "Chercher  ...")
+  search.setAttribute("placeholder", "Chercher...")
   results = document.getElementById("results")
 
   search.addEventListener('keyup', function () {
