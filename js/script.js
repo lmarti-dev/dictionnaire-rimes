@@ -1,3 +1,7 @@
+//  plus de rimes avec o ne marche pas....
+// et BOOTstrap ne centre pas le div#content
+
+
 const CONSONNES_LETTRES = "qwrtzpsdfghjklxcvbnmç"
 const CONSONNES_ASSOC = "ch"
 const CONSONNES = CONSONNES_ASSOC + [...CONSONNES_LETTRES].map((e) => `|${e}`).join("")
@@ -22,7 +26,7 @@ var current_rimes = 0
 var rimes;
 
 var liste;
-var current_search_value = ""
+var current_search_value = "";
 
 async function load_littre_zip(callback) {
   var xhttp = new XMLHttpRequest();
@@ -88,7 +92,8 @@ function to_pattern(pron) {
 
 function get_end_regex(pron) {
   if (ONLYVOYELLES.test(pron)) {
-    return new RegExp(`${pron}$`)
+    // éviter qu'"i" rime avec "ai" ou "oi"
+    return new RegExp(`(?<!${VR})${pron}$`)
   } else if (ONLYCONSONNES.test(pron)) {
     let pron_regex = pron.replace(/'?$/, "'?")
     return new RegExp(`${pron_regex}$`)
@@ -139,6 +144,9 @@ function process_search_value(v) {
   v = v.replaceAll(new RegExp(`(?!i)ll`, "g"), "l", v)
 
 
+  // ph à f
+  v = v.replaceAll(new RegExp(`ph`, "g"), "f", v)
+
   // remplacer er par é
   v = v.replace(/er$/, "é", v)
 
@@ -150,6 +158,9 @@ function process_search_value(v) {
 
   // paître
   v = v.replaceAll(/aî/g, "ê", v)
+
+  // paît doit
+  v = v.replace(/([oa]i)t$/, "$1", v)
 
   //  trépas, pas, 
   v = v.replace(/as$/, "a", v)
@@ -208,19 +219,24 @@ function append_rimes_to_content() {
     results.appendChild(create_result_list_item(rimes[i]))
   }
 }
+function click_for_more_rimes() {
+  let add_more = document.getElementById("more-results")
+  current_rimes += MORE_RIMES
+  append_rimes_to_content()
+  if (rimes.length <= current_rimes + DEFAULT_MAX_RIMES) {
+    add_more.setAttribute("style", "display:none;")
+  }
+
+}
+
+
 function manage_more_rimes() {
-  // TODO: add ranking by most common or alphabetical
-  // do most common by counting each in the xml littre
   let add_more = document.getElementById("more-results")
   if (rimes.length > current_rimes + DEFAULT_MAX_RIMES) {
     add_more.removeAttribute("style")
-    add_more.addEventListener("click", () => {
-      current_rimes += MORE_RIMES
-      append_rimes_to_content()
-      if (rimes.length <= current_rimes + DEFAULT_MAX_RIMES) {
-        add_more.setAttribute("style", "display:none;")
-      }
-    })
+    add_more.addEventListener("click",
+      click_for_more_rimes
+    )
   }
 
 }
@@ -245,37 +261,65 @@ function setup_search() {
 
   function doneTyping() {
     current_rimes = 0
-
-
     if (search.value != current_search_value) {
       let add_more = document.getElementById("more-results")
       add_more.setAttribute("style", "display:none;")
-      results.innerHTML = ""
+      results.innerHTML = "";
       current_search_value = search.value;
 
       let pron = process_search_value(search.value)
-      pron_box = document.getElementById("pron")
+      let info_line = document.getElementById("info-line")
 
       if (pron != "") {
         let end_regex = get_end_regex(pron)
         rimes = find_rimes(pron, end_regex)
-        pron_box.setAttribute("class", "small px-2 text-secondary")
-        pron_box.innerHTML = `<span class'font-italic'>${pron}</span> ― <code>${end_regex}</code>`
+        info_line.setAttribute("class", "small px-2 text-secondary")
+        info_line.innerHTML = `<span class'font-italic'>${pron}</span> ― <code>${end_regex.toString().replace(/\</, "&lt;")}</code>
+      </code>  ― <span>${rimes.length}</span> résultats`
 
-        document.title = `Rimes - ${search.value}`
+        document.title = `Rimes - ${search.value} `
       } else {
-        pron_box.innerHTML = ""
+        info_line.innerHTML = ""
       }
       append_rimes_to_content()
       manage_more_rimes()
-
     }
   }
 
 }
 
+function is_hidden(div) {
+  return div["style"]["display"] == "none"
+}
+
+function set_apropos() {
+  let apropos_btn = document.getElementById("a-propos-btn");
+  let apropos = document.getElementById("a-propos");
+  let content = document.getElementById("content");
+
+  apropos_btn.addEventListener("click", () => {
+
+    if (is_hidden(apropos) && !is_hidden(content)) {
+      // show apropos
+      apropos.removeAttribute("style");
+      content.setAttribute("style", "display:none;");
+      apropos_btn.innerHTML = "Retour"
+    } else if (!is_hidden(apropos) && is_hidden(content)) {
+      // hide apropos
+      content.removeAttribute("style");
+      apropos.setAttribute("style", "display:none;");
+      apropos_btn.innerHTML = "À propos"
+    } else {
+      // in case reset to hide apropos
+      content.removeAttribute("style");
+      apropos.setAttribute("style", "display:none;");
+      apropos_btn.innerHTML = "À propos"
+    }
+
+  })
+}
+
 document.addEventListener('DOMContentLoaded', (event) => {
-
   main()
-
+  set_apropos()
 });
