@@ -24,8 +24,9 @@ const DEFAULT_MAX_RIMES = 100
 const MORE_RIMES = 100
 var current_rimes = 0
 var rimes;
+var mots;
+var in_dictionary = false;
 
-var liste;
 var current_search_value = "";
 
 async function load_littre_zip(callback) {
@@ -70,6 +71,8 @@ async function main() {
     zip.loadAsync(response).then(function (zip) {
       zip.file(`${FILE_TO_LOAD}.json`).async("text").then(jobj => {
         liste = JSON.parse(jobj)
+        // juste les mots
+        mots = liste.map((item) => item[0])
         setup_search()
       })
     })
@@ -99,7 +102,7 @@ function get_end_regex(pron) {
     return new RegExp(`${pron_regex}$`)
   }
 
-  m = pron.match(new RegExp(`(${CR}+${VR}+$)|(${VR}+${CR}+'?$)`))
+  m = pron.match(new RegExp(`((?:${CR}|-)+(?:${VR}|-)+$)|((?:${VR}|-)+(?:${CR}|-)+'?$)`))
   if (m == null) { return /$/ }
   pron_end = m[0]
   penultieme_syllabe = pron.slice(0, m.index).match(new RegExp(`(${CR}|${VR})$`))
@@ -130,8 +133,37 @@ function find_rimes(pron, end_regex) {
 
 function process_search_value(v) {
 
+  v_reg = new RegExp(`^${v}$`, "i")
+  ind = mots.findIndex((mot) => v_reg.test(mot))
+  if (ind != -1) {
+    in_dictionary = true;
+    v = liste[ind][1];
+  }
+  else {
+    in_dictionary = false;
+    v = heuristic_pron_find(v)
+  }
+  return v
+
+
+}
+
+
+function heuristic_pron_find(v) {
   // remove spaces in word
   v = v.replaceAll(/ +/g, "", v)
+
+
+  // s pluriel final
+  v = v.replace(new RegExp(`(?<=${CR})es$`), "e", v)
+
+  // s -> z
+  v = v.replace(new RegExp(`s(?![shc])$`), "z", v)
+  // sc ->
+  v = v.replace(new RegExp(`sch$`), "sk", v)
+  v = v.replace(new RegExp(`sc$`), "s", v)
+
+
 
   // remplacer le e caduc par '
   v = v.replace(new RegExp(`(${CR})e$`), "$1'", v)
@@ -153,7 +185,7 @@ function process_search_value(v) {
   // oeu -> eu
   v = v.replaceAll(/œu/g, "eu", v)
 
-  // 
+  // seigneur
   v = v.replaceAll(/ei/g, "è", v)
 
   // paître
@@ -173,6 +205,10 @@ function process_search_value(v) {
 
   // remplacer chienne par chièn
   v = v.replaceAll(/enn/g, "èn", v)
+
+  // fesse
+  v = v.replaceAll(/ess/g, "ès", v)
+
 
   // remplacer ancien par aciin
   v = v.replaceAll(/ien/g, "iin", v)
@@ -206,12 +242,8 @@ function process_search_value(v) {
 
   // but back the ll in
   v = v.replaceAll(/£/g, "ll", v)
-
   return v
-
-
 }
-
 
 function append_rimes_to_content() {
   results = document.getElementById("results")
@@ -274,8 +306,18 @@ function setup_search() {
         let end_regex = get_end_regex(pron)
         rimes = find_rimes(pron, end_regex)
         info_line.setAttribute("class", "small px-2 text-secondary")
+
+        let exists
+
+        if (in_dictionary) {
+          exists = "existe"
+        } else {
+          exists = "n'existe pas"
+        }
+
         info_line.innerHTML = `<span class'font-italic'>${pron}</span> ― <code>${end_regex.toString().replace(/\</, "&lt;")}</code>
-      </code>  ― <span>${rimes.length}</span> résultats`
+        </code> ― <span>${rimes.length}</span> résultats ― <span> ce mot ${exists} dans le Littré </span>`
+
 
         document.title = `Rimes - ${search.value} `
       } else {
