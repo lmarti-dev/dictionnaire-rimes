@@ -48,7 +48,7 @@ async function load_littre_zip(callback) {
 function create_result_list_item(tup) {
   let item = document.createElement("li")
   item.setAttribute("class", "mot list-group-item d-flex flex-row")
-  slug = tup[0].replace(/(,| ou ).*/gm, "")
+  slug = tup[0].replace(/(,| ou | \().*/gm, "")
   href = `https://www.littre.org/recherche?mot=${slug.toLowerCase()}`
   item.innerHTML = `<a target='_blank' class='ortho px-2 fw-bold' href='${href}'>${tup[0]}</a><p class='prono small px-2 text-secondary'>${tup[1]}</p>`
   return item

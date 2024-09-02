@@ -13,6 +13,10 @@
 			integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
 			crossorigin="anonymous"></script>
 		<link rel="icon" type="image/x-icon" href="favicon.ico">
+
+		<meta name="description" content="Dictionnaire de rimes">
+		<meta name="author" content="Lucas Marti">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 
 	<body>
@@ -29,19 +33,20 @@
 
 			<div id="a-propos" style="display: none;" class="mx-auto container p-2">
 				<p>
-					Le Littré est le surnom qu'on donne au <a
+					Le Littré est le surnom qu'on donne au <a target='_blank'
 						href="https://fr.wikipedia.org/wiki/Dictionnaire_de_la_langue_fran%C3%A7aise">Dictionnaire de la
-						langue</a> française publié par Émile
+						langue française</a> publié par Émile
 					Littré
 					entre 1863 et 1873.
 				</p>
 
 				<p>
-					Il contient notamment une notation phonétique rudimentaire et incomplète pour chaque mot, qui
+					Chaque mot possède notamment une notation phonétique rudimentaire, qui
 					est
 					utilisée ici: cette page web permet de chercher des rimes parmi les quelques 80'000 mots présent
 					dans le
-					dictionnaire, en utilisant quelques astuces et beaucoup de Regex.
+					dictionnaire, en utilisant quelques astuces et beaucoup de <a target='_blank'
+						href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions">régex</a>.
 				</p>
 
 				<p>
@@ -50,7 +55,7 @@
 					ll
 					mouillées notamment). Parfois, la transcription phonétique des mots contenait aussi des
 					commentaires, que
-					le traitement automatique ne réussit pas à supprimer. "Moult", à cause de cela,
+					le traitement automatique n'a pas réussi pas à supprimer. "Moult", à cause de cela,
 					rime
 					avec "ée". J'ai
 					gardé cet exemple en particulier car il est plutôt drôle et peut-être correct.
@@ -61,14 +66,28 @@
 				</p>
 
 				<p>
-					Le contenu (les mots et leur prononciation) provient de l'excellent <a
-						href="https://www.littre.org/">XMLittre</a> de
+					Le contenu (les mots et leur prononciation) provient de l'excellent <a target='_blank'
+						href="https://www.littre.org/">XMLittré</a> de
 					François
 					Gannaz.
 				</p>
 
-				<p>Pour signaler un problème, cliquer <a
+				<p>Pour signaler un problème, cliquer <a target='_blank'
 						href="https://github.com/lmarti-dev/dictionnaire-rimes/issues/new">ici</a>.</p>
+
+
+				<hr />
+
+				<p>
+					Le Littré contient aussi, parmi les exemples associés aux définitions, une multitude de proverbes,
+					certains oubliés et d'autres encore présents dans
+					le langage courant. On pourra les consulter à <a target='_blank'
+						href="https://dxdt.ch/littre-proverbes">cette
+						adresse</a>.
+				</p>
+
+
+				<p> Lucas Marti ― <a target='_blank' href="https://dxdt.ch">dxdt.ch</a></p>
 
 			</div>
 			<button type="button" class="btn btn-outline-primary relative-bottom btn-sm p-2 w-10 mx-auto m-2"
