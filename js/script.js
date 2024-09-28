@@ -10,10 +10,7 @@ const CR = `(?:${CONSONNES})`;
 // guess what \W contains?
 const VOYELLES_LETTRES = "aeyoui" + "àèìòù" + "áéíóúý" + "âêîôû" + "äëïöüÿ";
 const VOYELLES_ASSOC = "an|eu|in|on|un|oi|ou";
-const VOYELLES_DANGEREUSES = VOYELLES_ASSOC.split("|")
-  .filter((e) => VOYELLES_LETTRES.includes(e[1]))
-  .join("|");
-
+const VOYELLES_DANGEREUSES = "u|i";
 const VOYELLES =
   VOYELLES_ASSOC + [...VOYELLES_LETTRES].map((e) => `|${e}`).join("");
 const VR = `(?:${VOYELLES})`;
@@ -48,7 +45,7 @@ async function load_littre_zip(callback) {
 }
 
 function get_forbidden_voyelles(v) {
-  let forbs = VOYELLES_ASSOC.split("|").filter((e) => e.includes(v));
+  let forbs = VOYELLES_ASSOC.split("|").filter((e) => e[1] == v);
   forbs = forbs.map((e) => e[0]).join("|");
   return forbs;
 }
@@ -226,6 +223,9 @@ function heuristic_pron_find(v) {
 
   // fesse
   v = v.replaceAll(/ess/g, "ès", v);
+
+  // tombe, pompe
+  v = v.replaceAll(/om([bp])/g, "on$1", v);
 
   // remplacer ancien par aciin
   v = v.replaceAll(/ien/g, "iin", v);
