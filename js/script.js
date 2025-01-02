@@ -168,6 +168,7 @@ function process_search_value(v) {
   return v;
 }
 
+
 function heuristic_pron_find(v) {
   // remove spaces in word
   v = v.replaceAll(/ +/g, "", v);
@@ -286,7 +287,18 @@ function manage_more_rimes() {
     add_more.removeAttribute("style");
     add_more.addEventListener("click", click_for_more_rimes);
   }
+  else if (rimes.length <= current_rimes + DEFAULT_MAX_RIMES) {
+    add_more.setAttribute("style", "display:none;");
+  }
 }
+
+function reset(){
+  rimes=[];
+  document.getElementById("info-line").innerHTML="";
+  document.getElementById("results").innerHTML="";
+  document.getElementById("more-results").setAttribute("style", "display:none;");
+}
+
 
 function setup_search() {
   var typingTimer;
@@ -308,7 +320,11 @@ function setup_search() {
 
   function doneTyping() {
     current_rimes = 0;
-    if (search.value != current_search_value) {
+    if (search.value == ""){
+      reset()
+
+    }
+    else if (search.value != current_search_value) {
       let add_more = document.getElementById("more-results");
       add_more.setAttribute("style", "display:none;");
       results.innerHTML = "";
