@@ -49,10 +49,10 @@ function get_forbidden_voyelles (v) {
 
 function create_result_list_item (tup) {
   let item = document.createElement('li')
-  item.setAttribute('class', 'mot list-group-item d-flex flex-row')
+  item.setAttribute('class', 'mot list-group-item d-flex flex-row p-3')
   slug = tup[0].replace(/(,| ou | \().*/gm, '')
   href = `https://www.littre.org/recherche?mot=${slug.toLowerCase()}`
-  item.innerHTML = `<a target='_blank' class='ortho px-2 fw-bold' href='${href}'>${tup[0]}</a><p class='prono small px-2 text-secondary'>${tup[1]}</p>`
+  item.innerHTML = `<a target='_blank' class='ortho align-self-center px-2 fw-bold' href='${href}'>${tup[0]}</a><p class='prono small my-0 align-self-center px-2 text-secondary'>${tup[1]}</p>`
   return item
 }
 
