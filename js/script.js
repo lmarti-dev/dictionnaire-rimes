@@ -16,6 +16,7 @@ const ONLYVOYELLES = new RegExp(`^${VR}+$`)
 const ONLYCONSONNES = new RegExp(`^${CR}+'?$`)
 
 const FILE_TO_LOAD = 'littre_blurb_sorted'
+var RIME_SUFF_ONLY = true
 
 const DEFAULT_MAX_RIMES = 100
 const MORE_RIMES = 100
@@ -130,7 +131,11 @@ function get_end_regex (pron) {
   }
 
   if (penultieme_syllabe != null) {
-    end_regex += `(${penultieme_syllabe[0]}|-)?${pron_end_dashed}$`
+    if (RIME_SUFF_ONLY) {
+      end_regex += `(${penultieme_syllabe[0]}|-)?${pron_end_dashed}$`
+    } else {
+      end_regex += `(${penultieme_syllabe[0]}|-)${pron_end_dashed}$`
+    }
   } else {
     end_regex += `${pron_end_dashed}$`
   }
@@ -303,20 +308,26 @@ function setup_search () {
   search.setAttribute('placeholder', 'Chercher...')
   results = document.getElementById('results')
 
-  search.addEventListener('keyup', function () {
+  search.addEventListener('keyup', function (event) {
     clearTimeout(typingTimer)
-    typingTimer = setTimeout(doneTyping, doneTypingInterval)
+    if (event.code === 'Backquote') {
+      RIME_SUFF_ONLY = Boolean(RIME_SUFF_ONLY - 1)
+      doneTyping(true)
+    } else {
+      typingTimer = setTimeout(doneTyping, doneTypingInterval)
+    }
   })
 
   search.addEventListener('keydown', function () {
     clearTimeout(typingTimer)
   })
 
-  function doneTyping () {
+  function doneTyping (force_reload = false) {
     current_rimes = 0
     if (search.value == '') {
       reset()
-    } else if (search.value != current_search_value) {
+    } else if (search.value != current_search_value || force_reload) {
+      search.value = search.value.replace('§', '')
       let add_more = document.getElementById('more-results')
       add_more.setAttribute('style', 'display:none;')
       results.innerHTML = ''
@@ -343,7 +354,14 @@ function setup_search () {
           .replace(/\</, '&lt;')}</code>
         </code> ― <span>${
           rimes.length
-        }</span> résultats ― <span> ce mot ${exists} dans le Littré </span>`
+        }</span> résultats ― <span> ce mot ${exists} dans le Littré</span>`
+
+        info_line.innerHTML += ', et nous cherchons des rimes '
+        if (RIME_SUFF_ONLY) {
+          info_line.innerHTML += 'suffisantes.'
+        } else {
+          info_line.innerHTML += 'riches.'
+        }
 
         document.title = `Rimes - ${search.value} `
       } else {
